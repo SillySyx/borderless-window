@@ -1,5 +1,5 @@
-// use x11::xlib::{};
 use std::error::Error;
+// use x11::xlib::{};
 
 pub fn list_toplevel_windows() -> Result<Vec<String>, Box<dyn Error>> {
     // xcb query tree?

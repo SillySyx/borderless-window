@@ -1,17 +1,17 @@
-#[cfg(target_os = "linux")]
+#[cfg(linux)]
 mod linux;
 
-#[cfg(target_os = "linux")]
+#[cfg(linux)]
 pub use linux::{
     list_toplevel_windows,
     make_window_borderless,
     make_window_fullscreen
 };
 
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 mod windows;
 
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 pub use windows::{
     list_toplevel_windows,
     make_window_borderless,
