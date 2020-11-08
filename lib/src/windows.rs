@@ -2,7 +2,7 @@ use std::error::Error;
 
 use winapi::shared::minwindef::*;
 use winapi::shared::windef::*;
-use winapi::um::winuser::{EnumWindows, GetWindowTextLengthW, GetWindowTextW};
+use winapi::um::winuser::*;
 
 unsafe fn read_window_title(hwnd: HWND) -> Option<String> {
     let window_text_length = GetWindowTextLengthW(hwnd);
@@ -25,26 +25,46 @@ unsafe fn read_window_title(hwnd: HWND) -> Option<String> {
     Some(string)
 }
 
-unsafe extern "system" fn enumerate_callback(hwnd: HWND, _: LPARAM) -> BOOL {
+unsafe extern "system" fn enumerate_callback(hwnd: HWND, userdata: LPARAM) -> BOOL {
+    let windows: &mut Vec<(usize, String)> = std::mem::transmute(userdata);
+
     if let Some(text) = read_window_title(hwnd) {
-        println!("{}", text);
+        let handle = hwnd as usize;
+        windows.push((handle, text));
     }
 
-    1
+    TRUE
 }
 
-#[cfg(windows)]
-pub fn list_toplevel_windows() -> Result<Vec<String>, Box<dyn Error>> {
+unsafe fn make_borderless(hwnd: HWND) -> Result<(), Box<dyn Error>> {
+    SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP as isize);
+
+	let x = 0;
+	let y = 0;
+	let width = GetSystemMetrics(SM_CXSCREEN);
+	let height = GetSystemMetrics(SM_CYSCREEN);
+	let flags = SWP_SHOWWINDOW | SWP_FRAMECHANGED;
+
+	if SetWindowPos(hwnd, HWND_TOP, x, y, width, height, flags) == FALSE {
+        return Err(Box::from("failed to make window borderless"));
+    }
+
+    Ok(())
+}
+
+pub fn list_toplevel_windows() -> Result<Vec<(usize, String)>, Box<dyn Error>> {
+    let mut windows: Vec<(usize, String)> = vec![];
+
     unsafe {
-        EnumWindows(Some(enumerate_callback), 0);
+        let userdata = &mut windows as *mut _;
+        EnumWindows(Some(enumerate_callback), userdata as LPARAM);
     }
-    Err(Box::from("Oppai panic"))
+
+    Ok(windows)
 }
 
-pub fn make_window_fullscreen(_name: String) -> Result<(), Box<dyn Error>> {
-    Ok(())
-}
-
-pub fn make_window_borderless(_name: String) -> Result<(), Box<dyn Error>> {
-    Ok(())
+pub fn make_window_borderless(hwnd: usize) -> Result<(), Box<dyn Error>> {
+    unsafe { 
+        make_borderless(hwnd as HWND)
+    }
 }
