@@ -39,13 +39,13 @@ unsafe extern "system" fn enumerate_callback(hwnd: HWND, userdata: LPARAM) -> BO
 unsafe fn make_borderless(hwnd: HWND) -> Result<(), Box<dyn Error>> {
     SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP as isize);
 
-	let x = 0;
-	let y = 0;
-	let width = GetSystemMetrics(SM_CXSCREEN);
-	let height = GetSystemMetrics(SM_CYSCREEN);
-	let flags = SWP_SHOWWINDOW | SWP_FRAMECHANGED;
+    let x = 0;
+    let y = 0;
+    let width = GetSystemMetrics(SM_CXSCREEN);
+    let height = GetSystemMetrics(SM_CYSCREEN);
+    let flags = SWP_SHOWWINDOW | SWP_FRAMECHANGED;
 
-	if SetWindowPos(hwnd, HWND_TOP, x, y, width, height, flags) == FALSE {
+    if SetWindowPos(hwnd, HWND_TOP, x, y, width, height, flags) == FALSE {
         return Err(Box::from("failed to make window borderless"));
     }
 
@@ -64,7 +64,5 @@ pub fn list_toplevel_windows() -> Result<Vec<(usize, String)>, Box<dyn Error>> {
 }
 
 pub fn make_window_borderless(hwnd: usize) -> Result<(), Box<dyn Error>> {
-    unsafe { 
-        make_borderless(hwnd as HWND)
-    }
+    unsafe { make_borderless(hwnd as HWND) }
 }
